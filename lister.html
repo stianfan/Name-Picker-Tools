@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Manager</title>
+    <style>
+        :root { --bg: #181818; --bg2: #665c54; --fg: #ebdbb2; --color: #cc241d; --spin: #b8bb26; --button: #b8bb26; --winner: #fabd2f; }
+        @font-face {
+          font-family: 'NotoSansDisplay';
+          src: url('fonts/NotoSansDisplay.ttf') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            color: var(--fg);
+            font-family: 'NotoSansDisplay', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 100%;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--bg), var(--bg2));
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: var(--winner);
+            font-size: 2rem;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--fg);
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 44vh;
+            padding: 10px;
+            margin-bottom: 10px;border: 1px solid var(--bg2); border-radius: 5px; margin-bottom: 1rem; padding: 0.4rem 0.8rem; color: var(--fg); background-color: var(--bg2); outline: none;
+            font-size: 1rem;
+            resize: vertical;
+            scrollbar-width: thin;
+            scrollbar-color: var(--fg) var(--bg2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+
+        /* Webkit scrollbar styles */
+        textarea::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background: var(--bg2);
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background: var(--fg);
+            border-radius: 5px;
+        }
+
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: var(--fg);
+        }
+
+        /* Corner where scrollbars meet */
+        textarea::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        /* Resizer style */
+        textarea::-webkit-resizer {
+            border-width: 1px;
+            border-style: outset;
+            border-color: transparent var(--fg) var(--fg) transparent;
+            background: transparent;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: var(--button);
+            color: var(--bg);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            filter: brightness(1.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            width: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .saved-lists {
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .list-item {
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: space-between;
+            list-style: none;
+            padding: 0.5rem;
+            background-color: var(--bg2);
+            align-items: center;
+            margin-right: 10px;
+            gap: 1rem;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .list-item > *:first-child {
+            flex: 1;
+        }
+        
+        .list-item > * {
+            flex: 0;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: var(--fg);
+        }
+
+        .delete-btn:hover {
+            background-color: #da190b;
+            color: var(--fg);
+        }
+
+        .flexer {
+            display: flex;
+            gap: 1rem;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .flexer > *:first-child {
+            flex: 1 50vh;
+        }
+
+        @media all and (max-width: 800px) {
+          .flexer {
+            flex-direction: column;
+          }
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 4rem 2rem;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--bg2);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 300px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--winner);
+            text-shadow: rgb(0, 1, 1) 0px 0px 8px;
+        }
+
+        .card p {
+            width: 160px;
+            text-align: center;
+            color: var(--fg);
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <div><center><h1>List Manager</h1>
+    </center>
+    <div class="flexer">
+    <div class="saved-lists">
+        <div id="listContainer"></div>
+    </div>
+
+    <div class="input-section">
+        <textarea id="namesInput" placeholder="Enter names (one per line)"></textarea>
+        <button onclick="showSaveModal()">Save List</button>
+    </div>
+
+    
+    </div>
+    <div class="flexer">
+        <div class="cards-container">
+            <div class="card" onclick="window.location.href='wheel.html'">
+                <img src="img/wheel.png" alt="Product 1">
+                <h2>Wheel of Names</h2>
+                <p>Places names on a wheel, spinns to pick a winner!</p>
+            </div>
+    
+            <div class="card" onclick="window.location.href='grouper.html'">
+                <img src="img/grouper.png" alt="Product 2">
+                <h2>Grouper</h2>
+                <p>Randomly places names in a set number of groups.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <h3>Save List</h3>
+            <input type="text" id="listName" placeholder="Enter list name">
+            <button onclick="saveList()">Save</button>
+            <button class="delete-btn" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        function showSaveModal() {
+            document.getElementById('saveModal').style.display = 'block';
+            document.getElementById('listName').value = '';
+            document.getElementById('listName').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('saveModal').style.display = 'none';
+        }
+
+        function saveList() {
+            const listName = document.getElementById('listName').value.trim();
+            const names = document.getElementById('namesInput').value.trim();
+            
+            if (!listName) {
+                alert('Please enter a list name');
+                return;
+            }
+
+            if (!names) {
+                alert('Please enter some names');
+                return;
+            }
+
+            const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+            lists[listName] = names.split('\n').filter(name => name.trim());
+            localStorage.setItem('nameLists', JSON.stringify(lists));
+            
+            closeModal();
+            displayLists();
+            document.getElementById('namesInput').value = '';
+        }
+
+        function deleteList(listName) {
+            if (confirm(`Are you sure you want to delete "${listName}"?`)) {
+                const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+                delete lists[listName];
+                localStorage.setItem('nameLists', JSON.stringify(lists));
+                displayLists();
+            }
+        }
+
+        function loadList(listName) {
+            const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+            document.getElementById('namesInput').value = lists[listName].join('\n');
+        }
+
+        function displayLists() {
+            const container = document.getElementById('listContainer');
+            const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+            
+            container.innerHTML = '';
+            
+            // Get all keys and sort them alphabetically
+            const sortedListNames = Object.keys(lists).sort((a, b) => 
+                a.toLowerCase().localeCompare(b.toLowerCase())
+            );
+            
+            sortedListNames.forEach(listName => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                
+                const nameCount = lists[listName].length;
+                listItem.innerHTML = `
+                    <strong>${listName}</strong>  ${nameCount} names
+                    <button onclick="loadList('${listName}')">Load</button>
+                    <button class="delete-btn" onclick="deleteList('${listName}')">Delete</button>
+                `;
+                
+                container.appendChild(listItem);
+            });
+        }
+
+        // Initial display
+        displayLists();
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('saveModal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

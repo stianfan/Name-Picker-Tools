@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grouper</title>
+    <style>
+        :root { --bg: #181818; --bg2: #665c54; --fg: #ebdbb2; --color: #cc241d; --spin: #b8bb26; --button: #b8bb26; --winner: #fabd2f; --font: NotoSansDisplay; --overlay: rgba(28, 28, 28, 1) }
+
+        @font-face {
+          font-family: 'NotoSansDisplay';
+          src: url('fonts/NotoSansDisplay.ttf') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
+
+        body {
+            font-family: 'NotoSansDisplay', system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--fg);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 400;
+            color: var(--bg);
+        }
+
+        h3 {font-size: 0%;
+        }
+
+        /* Webkit scrollbar styles */
+        textarea::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background: var(--bg2);
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background: var(--bg);
+            border-radius: 5px;
+        }
+
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: var(--bg);
+        }
+
+        /* Corner where scrollbars meet */
+        textarea::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        /* Resizer style */
+        textarea::-webkit-resizer {
+            border-width: 10px;
+            border-style: solid;
+            border-radius: 5px;
+            border-color: transparent var(--bg) var(--bg) transparent;
+            background: transparent;
+        }
+
+
+
+        .input-section {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        textarea {
+            width: 50vh;
+            height: 220px;
+            padding: 10px;
+            margin-bottom: 10px;border: 1px solid var(--bg2); border-radius: 5px; margin-bottom: 1rem; padding: 0.4rem 0.8rem; color: var(--fg); background-color: var(--bg2); outline: none;
+            font-size: 14px;
+            resize: vertical;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bg) var(--bg2);
+        }
+        .input-section input {
+            width: 60px;
+            padding: 8px;
+            color: var(--fg);
+            background: var(--bg);
+            border: 1px solid var(--winner);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .groups-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .group {
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.5s ease;
+            min-height: 50px;
+            background:
+                radial-gradient(ellipse at top right, var(--group-color-dark), transparent 60%),
+                radial-gradient(ellipse at bottom left, var(--group-color-dark), transparent 60%),
+                var(--group-color-light);
+        }
+        .group h3 {
+            text-align: center;
+            margin-top: 0;
+            color: rgba(0,0,0,0.8);
+        }
+        .name {
+            line-height: 1;
+            margin: 0;
+            color: #000000c4;
+            text-shadow: var(--group-color-light) 0px 0px 16px, var(--group-color-light) 0px 0px 8px, var(--group-color-light) 0px 0px 4px;
+            font-size: 2rem;
+            text-align: center;
+            padding: 5px;
+            margin: 2px 0;
+            font-weight: 600;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            cursor: move;
+            user-select: none;
+        }
+        .name.highlight {
+            line-height: 1;
+            margin: 0;
+            color: var(--group-color-light);
+            text-shadow: rgb(0, 0, 0) 0px 0px 16px, rgb(0, 0, 0) 0px 0px 8px, rgb(0, 0, 0) 0px 0px 4px;
+            text-align: center;
+            font-weight: 600;
+            transform: scale(1.3);
+        }
+        .name.dragging {
+            opacity: 0.5;
+        }
+        .group.drag-over {
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .select-box {
+            display: grid;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .select-section2 {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .select-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .select-section > *:first-child {
+            flex: 0;
+        }
+        
+        .select-section > * {
+            flex: 1;
+        }
+
+        button { border-radius: 5px; display: inline-block; margin: 0.5rem 0; padding: 0.5rem 2rem; background-color: var(--winner); border: 2px solid var(--winner); color: var(--bg); }
+        button:disabled,
+        input:disabled { background: var(--bg2); border-color: var(--bg2); color: var(--bg); cursor: not-allowed; }
+        button:hover { cursor: pointer; filter: brightness(1.2); }
+        button:active { filter: brightness(0.85); }
+        button[disabled]:hover,
+        input[type="submit"][disabled]:hover { filter: none; }
+
+        select {
+            width: 100%;
+            height: 2rem;
+            padding: 8px;
+            color: var(--fg);
+            background: var(--bg);
+            border: 1px solid var(--spin);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        ::selection {           /* Browser/OS may ignore this */
+            background: var(--spin);
+            color: var(--bg);
+        }
+
+        .toggle {
+            color: var(--bg2);
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg);
+            color: var(--bg2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, transform 0.2s;
+            padding: 0;
+            z-index: 1000;
+        }
+
+        .fullscreen-btn:hover {
+            background: var(--bg);
+            color: var(--fg);
+            transform: scale(1.1);
+        }
+
+        .fullscreen-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+        .floating-exit {
+            color: var(--bg2);
+            font-size: 0.7rem;
+            position: fixed;
+            bottom: 20px;
+            left: 40px;
+            width: 40px;
+            height: 40px;
+            background-color: var(--bg);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        .floating-exit:hover {
+            transform: scale(1.5);
+            background-color: var(--bg);
+        }
+        
+        .floating-exit svg {
+            color: var(--bg2);
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" id="fullscreenBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+    </button>
+    <div class="floating-exit">
+        <span id="count">Loading...</span>
+    </div>
+    <div id="groupsContainer" class="groups-container"></div>
+    <div class="toggle" onclick="
+        const content = document.querySelector('.input-section');
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        this.textContent = content.style.display === 'none' ? 'Show' : '▼';
+    ">
+    ▼
+    </div>
+    <div class="input-section">
+        <div class="select-box">
+            <textarea id="namesInput" placeholder="Enter names (one per line)"></textarea>
+        <div class="select-section"><button style="background-color: var(--spin); border-color: var(--spin);" onclick="window.location.href='lister.html'">Manage</button>
+            <select id="listSelect" onchange="loadSelectedList()">
+                <option value="">Select a list...</option>
+            </select> 
+        </div>
+        <div class="select-section2">
+            <label>Groups:</label>
+            <input type="number" id="groupCount" min="2" value="4">
+            <button onclick="startSorting()"><b>Start Grouper! </b></button>
+        </div></div>
+    </div>
+
+    
+
+    <script>
+        let animationTimeout;
+        let groups = [];
+
+        function generateDistinctColors(count) {
+            const colors = [];
+            const predefinedSchemes = {
+                2: [
+                    ['#C62828', '#800800'],
+                    ['#276468', '#183f39']
+                ],
+                3: [
+                    ['#C62828', '#800800'],
+                    ['#276468', '#183f39'],
+                    ['#a58c27', '#39571c']
+                ],
+                4: [
+                    ['#C62828', '#800800'],
+                    ['#276468', '#183f39'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c']
+                ],
+                5: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b']
+                ],
+                6: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#f68187', '#f5555d']
+                ],
+                7: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#f68187', '#f5555d'],
+                    ['#ab9b8e', '#5F574F']
+                ],
+                8: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#f68187', '#f5555d'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#fdcbb0', '#ab947a']
+                ],
+                9: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#7ccf9a', '#20806c']
+                ],
+                10: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468']
+                ],
+                11: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c']
+                ],
+                12: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c']
+                ],
+                13: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b']
+                ],
+                14: [
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a'],
+                    ['#ab9b8e', '#5F574F'],
+                    ['#f68187', '#f5555d'],
+                    ['#C62828', '#800800'],
+                    ['#3c9f9c', '#276468'],
+                    ['#a58c27', '#39571c'],
+                    ['#efac28', '#ab5c1c'],
+                    ['#c65197', '#7a367b'],
+                    ['#fdcbb0', '#ab947a']
+                ]
+            };
+
+            if (predefinedSchemes[count]) {
+                return predefinedSchemes[count];
+            }
+
+            const baseHues = [0, 60, 120, 180, 240, 300];
+            const shuffledHues = [...baseHues].sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < count; i++) {
+                const hueBase = shuffledHues[i % shuffledHues.length];
+                const hueOffset = Math.floor(Math.random() * 30) - 15;
+                const saturation = 65 + Math.floor(Math.random() * 20);
+                const finalHue = (hueBase + hueOffset + 360) % 360;
+                
+                // Create gradient colors: lighter to darker
+                const lightColor = `hsl(${finalHue}, ${saturation}%, 80%)`;
+                const darkColor = `hsl(${finalHue}, ${saturation}%, 60%)`;
+                colors.push([lightColor, darkColor]);
+            }
+            
+            return colors;
+        }
+
+        function sortGroupsAlphabetically() {
+            groups = groups.map(group => 
+                group.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}))
+            );
+        }
+
+        function setupDragAndDrop() {
+            document.querySelectorAll('.name').forEach(nameElement => {
+                nameElement.draggable = true;
+                
+                nameElement.addEventListener('dragstart', (e) => {
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', e.target.textContent);
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                nameElement.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                    document.querySelectorAll('.group').forEach(group => {
+                        group.classList.remove('drag-over');
+                    });
+                });
+            });
+
+            document.querySelectorAll('.group').forEach(groupElement => {
+                groupElement.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    groupElement.classList.add('drag-over');
+                });
+
+                groupElement.addEventListener('dragleave', (e) => {
+                    groupElement.classList.remove('drag-over');
+                });
+
+                groupElement.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    groupElement.classList.remove('drag-over');
+                    
+                    const name = e.dataTransfer.getData('text/plain');
+                    const sourceGroupIndex = findGroupIndexByName(name);
+                    const targetGroupIndex = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
+                    
+                    if (sourceGroupIndex !== -1 && sourceGroupIndex !== targetGroupIndex) {
+                        // Remove from source group
+                        groups[sourceGroupIndex] = groups[sourceGroupIndex].filter(n => n !== name);
+                        // Add to target group
+                        groups[targetGroupIndex].push(name);
+                        // Sort the target group alphabetically
+                        groups[targetGroupIndex].sort((a, b) => 
+                            a.localeCompare(b, undefined, {sensitivity: 'base'})
+                        );
+                        // Update display
+                        updateGroupDisplay(groups);
+                        // Re-setup drag and drop for new elements
+                        setupDragAndDrop();
+                    }
+                });
+            });
+        }
+
+        function findGroupIndexByName(name) {
+            for (let i = 0; i < groups.length; i++) {
+                if (groups[i].includes(name)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function startSorting() {
+            clearTimeout(animationTimeout);
+            const content = document.querySelector('.input-section');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            this.textContent = content.style.display === 'none' ? 'Show' : ' ';
+            const namesText = document.getElementById('namesInput').value;
+            const groupCount = parseInt(document.getElementById('groupCount').value);
+            const names = namesText.split('\n').filter(name => name.trim());
+            
+            const groupColors = generateDistinctColors(groupCount);
+            
+            const groupsContainer = document.getElementById('groupsContainer');
+            groupsContainer.innerHTML = '';
+            groups = [];
+            
+            for (let i = 0; i < groupCount; i++) {
+                const group = document.createElement('div');
+                group.className = 'group';
+                // Set CSS variables for gradient colors
+                group.style.setProperty('--group-color-light', groupColors[i][0]);
+                group.style.setProperty('--group-color-dark', groupColors[i][1]);
+                group.innerHTML = `<h3>${i + 1}</h3>`;
+                groupsContainer.appendChild(group);
+                groups.push([]);
+            }
+
+            // Rest of the startSorting function remains the same
+            const shuffledNames = [...names].sort(() => Math.random() - 0.5);
+            let currentGroupIndex = 0;
+            let nameIndex = 0;
+
+            function animateNextName() {
+                if (nameIndex < shuffledNames.length) {
+                    document.querySelectorAll('.name').forEach(el => {
+                        el.classList.remove('highlight');
+                    });
+
+                    const name = shuffledNames[nameIndex];
+                    groups[currentGroupIndex].push(name);
+                    
+                    updateGroupDisplay(groups);
+                    setupDragAndDrop();
+                    
+                    const groupElements = document.querySelectorAll('.group');
+                    const lastNameElement = groupElements[currentGroupIndex].lastElementChild;
+                    if (lastNameElement && lastNameElement.classList.contains('name')) {
+                        lastNameElement.classList.add('highlight');
+                    }
+
+                    currentGroupIndex = (currentGroupIndex + 1) % groupCount;
+                    nameIndex++;
+                    
+                    animationTimeout = setTimeout(animateNextName, 900);
+                } else {
+                    sortGroupsAlphabetically();
+                    updateGroupDisplay(groups);
+                    setupDragAndDrop();
+                }
+            }
+
+            animateNextName();
+        }
+
+        function updateGroupDisplay(groups) {
+            const groupElements = document.querySelectorAll('.group');
+            groups.forEach((group, index) => {
+                const groupElement = groupElements[index];
+                const headerHTML = groupElement.querySelector('h3').outerHTML;
+                groupElement.innerHTML = headerHTML +
+                    group.map(name => `<div class="name">${name}</div>`).join('');
+            });
+        }
+        
+        function populateDropdown() {
+            const select = document.getElementById('listSelect');
+            const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+            const statsSection = document.getElementById('statsSection');
+            
+            // Clear existing options except the first one
+            select.innerHTML = '<option value="">Select a list...</option>';
+            
+            if (Object.keys(lists).length === 0) {
+                const textarea = document.getElementById('namesInput');
+                textarea.value = 'No lists found. Create some lists in the List Manager.';
+                statsSection.style.display = 'none';
+                return;
+            }
+
+            // Add options for each list
+            Object.keys(lists).sort().forEach(listName => {
+                const option = document.createElement('option');
+                option.value = listName;
+                option.textContent = `${listName} (${lists[listName].length} names)`;
+                select.appendChild(option);
+            });
+        }
+
+        function loadSelectedList() {
+            const select = document.getElementById('listSelect');
+            const textarea = document.getElementById('namesInput');
+            const statsSection = document.getElementById('statsSection');
+            
+            if (!select.value) {
+                textarea.value = '';
+                statsSection.style.display = 'none';
+                return;
+            }
+
+            const lists = JSON.parse(localStorage.getItem('nameLists') || '{}');
+            const names = lists[select.value];
+            
+            // Display names
+            textarea.value = names.join('\n');
+            
+        }
+
+        // Listen for storage changes from other pages
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'nameLists') {
+                populateDropdown();
+                // Reset selection when lists are modified from another page
+                document.getElementById('listSelect').value = '';
+                document.getElementById('namesInput').value = '';
+            }
+        });
+
+        // Initial population
+        populateDropdown();
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const enterFullscreenIcon = `<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>`;
+        const exitFullscreenIcon = `<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = fullscreenBtn.querySelector('svg');
+            icon.innerHTML = document.fullscreenElement ? exitFullscreenIcon : enterFullscreenIcon;
+        });
+        const NAMESPACE = 'stianfan.github-grouper';
+        
+        // Function to format numbers with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Fetch and update the counter
+        fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/visits`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('count').textContent = formatNumber(data.value);
+            })
+            .catch(error => {
+                document.getElementById('count').textContent = 'Error loading count';
+            });
+        
+    </script>
+</body>
+</html>
