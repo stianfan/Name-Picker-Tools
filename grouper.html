@@ -235,32 +235,6 @@
             width: 24px;
             height: 24px;
         }
-        .floating-exit {
-            color: var(--bg2);
-            font-size: 0.7rem;
-            position: fixed;
-            bottom: 20px;
-            left: 40px;
-            width: 40px;
-            height: 40px;
-            background-color: var(--bg);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        
-        .floating-exit:hover {
-            transform: scale(1.5);
-            background-color: var(--bg);
-        }
-        
-        .floating-exit svg {
-            color: var(--bg2);
-            width: 24px;
-            height: 24px;
-        }
     </style>
 </head>
 <body>
@@ -269,9 +243,6 @@
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
     </button>
-    <div class="floating-exit">
-        <span id="count">Loading...</span>
-    </div>
     <div id="groupsContainer" class="groups-container"></div>
     <div class="toggle" onclick="
         const content = document.querySelector('.input-section');
@@ -673,23 +644,6 @@
             const icon = fullscreenBtn.querySelector('svg');
             icon.innerHTML = document.fullscreenElement ? exitFullscreenIcon : enterFullscreenIcon;
         });
-        const NAMESPACE = 'stianfan.github-grouper';
-        
-        // Function to format numbers with commas
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-        
-        // Fetch and update the counter
-        fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/visits`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('count').textContent = formatNumber(data.value);
-            })
-            .catch(error => {
-                document.getElementById('count').textContent = 'Error loading count';
-            });
-        
     </script>
 </body>
 </html>
